@@ -3,7 +3,7 @@ override MAKEFLAGS += -rR
 
 # This is the name that our final kernel executable will have.
 # Change as needed.
-override KERNEL := myos
+override KERNEL := 0xDEADCAFE
 
 # Convenience macro to reliably declare user overridable variables.
 define DEFAULT_VAR =
@@ -88,6 +88,24 @@ override HEADER_DEPS := $(addprefix obj/,$(CFILES:.c=.c.d) $(ASFILES:.S=.S.d))
 .PHONY: all
 all: bin/$(KERNEL)
 
+# ISO target
+.PHONY: iso
+iso: all
+	scripts/create_iso.sh
+
+# run in QEMU
+.PHONY: run
+run: iso
+	qemu-system-x86_64 \
+	-cpu core2duo \
+	-m 128 \
+	-no-reboot \
+	-drive format=raw,media=cdrom,file=image.iso \
+	-serial stdio \
+	-smp 1 \
+	-usb \
+	-vga std
+
 # Link rules for the final kernel executable.
 # The magic printf/dd command is used to force the final ELF file type to ET_DYN.
 # GNU binutils, for silly reasons, forces the ELF type to ET_EXEC even for
@@ -119,4 +137,4 @@ obj/%.asm.o: src/%.asm GNUmakefile
 # Remove object files and the final executable.
 .PHONY: clean
 clean:
-	rm -rf bin obj
+	rm -rf bin obj image.iso
