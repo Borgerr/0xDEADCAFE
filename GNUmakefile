@@ -48,6 +48,7 @@ override KCFLAGS += \
     -fPIE \
     -m64 \
     -march=x86-64 \
+	-masm=intel \
     -mno-80387 \
     -mno-mmx \
     -mno-sse \

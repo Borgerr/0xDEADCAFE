@@ -6,22 +6,9 @@
 // base revision set to 2, recommended since it's the latest base revision
 // described by the limine boot protocol
 __attribute__((used, section(".requests")))
-static volatile LIMINE_BASE_REVISION(2);
+volatile LIMINE_BASE_REVISION(2);
 
-// limine requests can be placed anywhere, but should not be optimized out
-__attribute__((used, section(".requests")))
-static volatile struct limine_framebuffer_request framebuffer_request = {
-    .id = LIMINE_FRAMEBUFFER_REQUEST,
-    .revision = 0
-};
-
-// define start and end markers for limine requests
-// can also be moved anywhere
-__attribute__((used, section(".requests_start_marker")))
-static volatile LIMINE_REQUESTS_START_MARKER;
-
-__attribute__((used, section(".requests_end_marker")))
-static volatile LIMINE_REQUESTS_END_MARKER;
+extern volatile struct limine_framebuffer_request framebuffer_request;
 
 // mandatory functions that GCC and Clang reserve the right to generate calls to
 // NO TOUCHIE but you can move them
@@ -78,6 +65,11 @@ static void hcf(void) {
         asm ("hlt");
 }
 
+// UNIMPORTANT TESTING THINGS
+// can remove someday but for now this is just to do some Q&D "tests"
+// IAFM.
+void takesInt(int x) {}
+
 // kernel's entry point
 // linker refers to this function's name
 void _start(void) {
@@ -94,9 +86,15 @@ void _start(void) {
     // fetch first framebuffer
     struct limine_framebuffer* framebuffer = framebuffer_request.response->framebuffers[0];
     for (size_t i = 0; i < 100; i++) {
-        volatile uint32_t* fb_ptr = framebuffer->address;
+        volatile uint64_t* fb_ptr = framebuffer->address;
         fb_ptr[i * (framebuffer->pitch / 4) + i] = 0xffffff;
     }
+
+    uint8_t sum = 0;
+    for (uint8_t* i = 0; i < 0x200000000; i += 4096) {
+        sum += *i;
+    }
+    takesInt(sum);
 
     hcf();
 }
