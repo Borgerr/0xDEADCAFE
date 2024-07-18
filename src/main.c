@@ -3,12 +3,12 @@
 #include <stdbool.h>
 #include "limine.h"
 
+#include "kio.h"
+
 // base revision set to 2, recommended since it's the latest base revision
 // described by the limine boot protocol
 __attribute__((used, section(".requests")))
 volatile LIMINE_BASE_REVISION(2);
-
-extern volatile struct limine_framebuffer_request framebuffer_request;
 
 // mandatory functions that GCC and Clang reserve the right to generate calls to
 // NO TOUCHIE but you can move them
@@ -65,37 +65,34 @@ static void hcf(void) {
         asm ("hlt");
 }
 
-// UNIMPORTANT TESTING THINGS
-// can remove someday but for now this is just to do some Q&D "tests"
-// IAFM.
-void takesInt(int x) {}
-
 // kernel's entry point
 // linker refers to this function's name
-void _start(void) {
+int _start(void) {
     // ensure bootloader actually understands base revision
     if (LIMINE_BASE_REVISION_SUPPORTED == false)
         hcf();
 
-    // ensure we have a framebuffer
-    if (framebuffer_request.response == NULL
-            || framebuffer_request.response->framebuffer_count < 1) {
+    if (vgaprint_init() == -1)
+        hcf();
+
+    vgaprint("HELLO!!!!!!!\n");
+
+    if (init_serial(COM1_IOPORT) == 0)
+        printk(COM1_IOPORT,
+                "woah haha serial is kind of erm epic if I do say so myself\n");
+    else {
+        vgaprint("serial can suck my nards");
         hcf();
     }
-
-    // fetch first framebuffer
-    struct limine_framebuffer* framebuffer = framebuffer_request.response->framebuffers[0];
-    for (size_t i = 0; i < 100; i++) {
-        volatile uint64_t* fb_ptr = framebuffer->address;
-        fb_ptr[i * (framebuffer->pitch / 4) + i] = 0xffffff;
-    }
+    write_serials(COM1_IOPORT, "HELLOOOO SERIAL!!!!\n");
+    vgaprint("HELLOOOO SCREEN!!!!\n");
 
     uint8_t sum = 0;
-    for (uint8_t* i = 0; i < 0x200000000; i += 4096) {
+    for (uint8_t* i = 0; i < 0xFFFFFFFFFFFFFFFF; i += 4096) {
         sum += *i;
     }
-    takesInt(sum);
 
     hcf();
+    return sum;
 }
 

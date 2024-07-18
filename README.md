@@ -3,7 +3,10 @@ An operating system providing simple access to a modular kernel, shipped with ju
 
 ## Work in Progress
 
-You can see the current progress on a blog on [my website](<https://borgerr.github.io).
+You can see the current progress on a blog on [my website](<https://borgerr.github.io/blog/index.html>).
+Although this README has big goals, for now it's really just a toy OS.
+Only time will tell whether or not this has any potential-
+but for me, it's easier to work on something when there's a goal.
 
 ## Goals
 
@@ -12,7 +15,7 @@ This means adding things at runtime like:
 
 - device drivers
 - system calls
--
+- protocol implementaitons
 
 Although the mechanisms are not yet implemented,
 I aim to have a simple suite of utilities
@@ -28,6 +31,7 @@ I try to capture them all here, or in other notes I have (again, see my blog).
 
 ## Building
 
-- building kernel binary: `make` from repo's root directory
-- after building kernel binary, create iso: `create_iso.sh`
+- `make` builds the kernel binary
+- `make iso` builds the kernel binary and creates a bootable iso
+- `make run` builds the kernel binary and runs it in QEMU
 
